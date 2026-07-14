@@ -5,3 +5,10 @@ allowBuilds:
   # esbuild is a well-known, widely-used bundler (transitive dep of vitest); its
   # postinstall just downloads the platform-specific binary. Safe to allow.
   esbuild: true
+  # Prisma's own packages — their postinstall scripts download the Prisma query-
+  # engine binaries the client needs at runtime. Official, first-party, required.
+  '@prisma/engines': true
+  prisma: true
+  # better-sqlite3 is the standard synchronous SQLite driver for Node, used here as
+  # Prisma's driver adapter. Its postinstall compiles a native addon from source.
+  better-sqlite3: true

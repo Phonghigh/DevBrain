@@ -1,0 +1,14 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+//
+// Deliberately no models yet — this task (DB0-07) only wires up the toolchain.
+// Real models (Capture, Concept, Link — spec §5) land in DB1-01.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}

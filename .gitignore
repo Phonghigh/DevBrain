@@ -17,6 +17,7 @@ build/
 *.db-journal
 *.sqlite
 *.sqlite3
+apps/api/src/generated/
 
 # Test / tooling artifacts
 coverage/

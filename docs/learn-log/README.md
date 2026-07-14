@@ -53,5 +53,6 @@ Newest at the top. One row per task report.
 
 | Task | Report | Difficulty | Status |
 |---|---|---|---|
+| DB0-07 | [Prisma in apps/api](DB0-07-prisma-in-api.md) | ⭐⭐⭐ | not-studied |
 | DB0-06 | [Scaffold apps/api (NestJS + /health)](DB0-06-scaffold-api.md) | ⭐⭐⭐ | not-studied |
 | DB0-05 | [Scaffold packages/shared](DB0-05-scaffold-shared.md) | ⭐⭐ | not-studied |
