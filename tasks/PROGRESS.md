@@ -32,3 +32,10 @@ Format:
 - follow-up: `.gitattributes` bundled here (one line, foundational repo config) rather than as its own task. pnpm noted 11.9.0 → 11.13.0 available; left pinned intentionally for reproducibility. Next eligible: DB0-03 (shared TS config).
 - commit: tasks(DB0-02): pnpm workspace
 
+## 2026-07-14 — DB0-03 Shared TS base config
+- changed: added `tsconfig.base.json` — strict (+ `noUncheckedIndexedAccess`, `noImplicitOverride`, `noFallthroughCasesInSwitch`), ES2022 target/lib, Bundler/ESM flavor (`module ESNext` + `moduleResolution Bundler` + `verbatimModuleSyntax` + `isolatedModules`), `declaration`/`declarationMap`/`sourceMap`, `skipLibCheck`. Added solution-style root `tsconfig.json` (`files: []`, `references: []` — packages register themselves later). Added `typescript@^5.9.2` (resolved 5.9.3) as a root devDependency so `tsc` can run.
+- files: `tsconfig.base.json`, `tsconfig.json`, `package.json` (+ devDep), `pnpm-lock.yaml` (generated)
+- verify: created a throwaway `_tsprobe/` package extending the base with a strict source file, ran `pnpm exec tsc -p _tsprobe/tsconfig.json --noEmit` → passes (exit 0), then removed the probe. Config only — touches neither `apps/**` nor `packages/**`, so no learn-log required.
+- follow-up: base is deliberately Bundler/ESM; `apps/api` (NestJS) will override `module=CommonJS` + `emitDecoratorMetadata`/`experimentalDecorators` + `verbatimModuleSyntax=false` in its own tsconfig (noted in the base file's comment). typescript pinned to a caret 5.9 range (5.9.3 installed; 7.0.2 available but not adopted). Next eligible: DB0-04 (ESLint + Prettier + husky).
+- commit: tasks(DB0-03): shared ts base config
+
