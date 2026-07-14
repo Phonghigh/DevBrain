@@ -17,7 +17,8 @@ updates it (via the `learning-log` skill) each time a task introduces new concep
 | Monorepo workspace package | not-started | 2026-07-14 | Introduced by DB0-05 (`packages/shared`). See [learn-log](learn-log/DB0-05-scaffold-shared.md) §4. |
 | TypeScript project references (`tsc -b`, `composite`) | not-started | 2026-07-14 | Introduced by DB0-05. See [learn-log](learn-log/DB0-05-scaffold-shared.md) §4. |
 | Vitest (test runner basics) | not-started | 2026-07-14 | Introduced by DB0-05. See [learn-log](learn-log/DB0-05-scaffold-shared.md) §4. |
-| NestJS module/controller/provider | not-started | — | Will be introduced by DB0-06 (scaffold apps/api). |
+| NestJS module/controller/provider + decorators | not-started | 2026-07-14 | Introduced by DB0-06 (`apps/api`, `/health`). See [learn-log](learn-log/DB0-06-scaffold-api.md) §4. |
+| Dependency Injection (DI) | not-started | 2026-07-14 | First seen (trivially) in DB0-06; becomes concrete with `PrismaService` in DB0-07. |
 
 Status values: `not-started`, `shaky`, `understood`.
 
@@ -32,7 +33,8 @@ mindmap
       Monorepo workspace package
       TS project references
       Vitest basics
-      NestJS basics
+      NestJS module controller provider
+      Dependency injection
       Prisma / ORM
       React + Vite
 ```
@@ -44,4 +46,5 @@ mindmap
 - Covered: set up the self-building harness (tasks backlog, hooks, learn-log) — no product code yet.
 - Covered: DB0-01 through DB0-04 (repo hygiene, pnpm workspace, strict TS base config, ESLint/Prettier/husky) — all config, no learn-log needed.
 - Covered: DB0-05 — first code package (`packages/shared`), first learn-log lesson written. Hit and fixed a real pnpm build-script security block (`ERR_PNPM_IGNORED_BUILDS` on esbuild) and a dist-pollution bug (tests leaking into the compiled build output).
-- Next: DB0-06 (scaffold `apps/api` — first NestJS module/controller).
+- Covered: DB0-06 — first NestJS server (`apps/api`), modules/controllers/decorators/DI. Booted the compiled server and curled `/health` for real (not just a clean typecheck). Hit and fixed a missing `@types/node` typecheck error.
+- Next: DB0-07 (Prisma in apps/api — DI becomes concrete with `PrismaService`).
