@@ -1,0 +1,8 @@
+node_modules
+dist
+build
+coverage
+pnpm-lock.yaml
+
+# Markdown is hand-authored (specs, task backlog, learn-log) — don't reflow it.
+*.md
