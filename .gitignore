@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Prisma / SQLite (local dev DB — DB is source-of-truth but the file itself is local)
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Test / tooling artifacts
+coverage/
+playwright-report/
+test-results/
+
+# Learn-log research trail (auto-captured, noisy on purpose — never committed)
+docs/learn-log/.trace/
+
+# OS / editor
+.DS_Store
+Thumbs.db
