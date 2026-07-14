@@ -2,5 +2,5 @@
   // Solution-style root config. Holds no files of its own; packages register
   // themselves here (references) as they're scaffolded, so `tsc -b` builds the graph.
   "files": [],
-  "references": []
+  "references": [{ "path": "./packages/shared" }]
 }

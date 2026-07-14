@@ -14,7 +14,10 @@ updates it (via the `learning-log` skill) each time a task introduces new concep
 
 | Concept | Status | Last touched | Notes |
 |---|---|---|---|
-| (example) NestJS module/controller/provider | not-started | — | Will be introduced by DB0-06 (scaffold apps/api). Delete this example row once real rows exist. |
+| Monorepo workspace package | not-started | 2026-07-14 | Introduced by DB0-05 (`packages/shared`). See [learn-log](learn-log/DB0-05-scaffold-shared.md) §4. |
+| TypeScript project references (`tsc -b`, `composite`) | not-started | 2026-07-14 | Introduced by DB0-05. See [learn-log](learn-log/DB0-05-scaffold-shared.md) §4. |
+| Vitest (test runner basics) | not-started | 2026-07-14 | Introduced by DB0-05. See [learn-log](learn-log/DB0-05-scaffold-shared.md) §4. |
+| NestJS module/controller/provider | not-started | — | Will be introduced by DB0-06 (scaffold apps/api). |
 
 Status values: `not-started`, `shaky`, `understood`.
 
@@ -26,6 +29,9 @@ mindmap
     Understood
     Shaky
     Not started
+      Monorepo workspace package
+      TS project references
+      Vitest basics
       NestJS basics
       Prisma / ORM
       React + Vite
@@ -34,5 +40,8 @@ mindmap
 ## Session Journal
 
 ### 2026-07-14
+
 - Covered: set up the self-building harness (tasks backlog, hooks, learn-log) — no product code yet.
-- Next: run the loop; DB0-01 (editorconfig + README) then DB0-02 (pnpm workspace).
+- Covered: DB0-01 through DB0-04 (repo hygiene, pnpm workspace, strict TS base config, ESLint/Prettier/husky) — all config, no learn-log needed.
+- Covered: DB0-05 — first code package (`packages/shared`), first learn-log lesson written. Hit and fixed a real pnpm build-script security block (`ERR_PNPM_IGNORED_BUILDS` on esbuild) and a dist-pollution bug (tests leaking into the compiled build output).
+- Next: DB0-06 (scaffold `apps/api` — first NestJS module/controller).

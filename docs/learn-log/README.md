@@ -53,4 +53,4 @@ Newest at the top. One row per task report.
 
 | Task | Report | Difficulty | Status |
 |---|---|---|---|
-| _(none yet — the first report lands with DB0-05, the first code task)_ | | | |
+| DB0-05 | [Scaffold packages/shared](DB0-05-scaffold-shared.md) | ⭐⭐ | not-studied |

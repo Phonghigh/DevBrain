@@ -1,3 +1,7 @@
 packages:
   - 'apps/*'
   - 'packages/*'
+allowBuilds:
+  # esbuild is a well-known, widely-used bundler (transitive dep of vitest); its
+  # postinstall just downloads the platform-specific binary. Safe to allow.
+  esbuild: true
