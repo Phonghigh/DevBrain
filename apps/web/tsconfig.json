@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // Browser app: the shared base only declares ES2022, so add the DOM typings.
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    // React 19's automatic runtime — no `import React` needed in every .tsx file.
+    "jsx": "react-jsx",
+    "types": ["vite/client"],
+    // Vite compiles the app; tsc is only ever run here as a typechecker.
+    "noEmit": true
+  },
+  "include": ["src", "vite.config.ts"],
+  // @devbrain/shared resolves through its exports map to dist/, which only exists once
+  // it's built. Declaring the reference lets `tsc -b` (see the typecheck script) build
+  // it on demand, so a fresh clone can typecheck web without a manual build step first.
+  "references": [{ "path": "../../packages/shared" }]
+}

@@ -18,7 +18,7 @@ Phases: **P0** Foundations · **P1** Capture + DB core · **P2** Distill + lint 
 - [x] **DB0-05** — Scaffold `packages/shared` (pkg.json, tsconfig, `src/index.ts`, vitest) — home for DTOs + `LINT_LIMITS` constants · *deps:* DB0-03 · *done:* package builds; a sample vitest test passes.
 - [x] **DB0-06** — Scaffold `apps/api` (NestJS skeleton + `/health`) · *deps:* DB0-03 · *done:* server boots; `GET /health` returns 200.
 - [x] **DB0-07** — Prisma in `apps/api` (`prisma init`, SQLite datasource, `PrismaModule`/`PrismaService` + lifecycle) · *deps:* DB0-06 · *done:* `prisma generate` ok; `PrismaService` injectable; empty `migrate dev` runs.
-- [ ] **DB0-08** — Scaffold `apps/web` (Vite + React + TS + router; `/inbox` `/distill` `/browse` stubs) · *deps:* DB0-05 · *done:* `pnpm --filter web dev` serves a shell with the 3 routes.
+- [x] **DB0-08** — Scaffold `apps/web` (Vite + React + TS + router; `/inbox` `/distill` `/browse` stubs) · *deps:* DB0-05 · *done:* `pnpm --filter web dev` serves a shell with the 3 routes.
 - [ ] **DB0-09** — Vitest + supertest in `apps/api` + first e2e (`/health`) · *deps:* DB0-06 · *done:* `pnpm --filter api test` green.
 - [ ] **DB0-10** — Vitest + Testing Library in `apps/web` + first render test · *deps:* DB0-08 · *done:* `pnpm --filter web test` green.
 - [ ] **DB0-11** — GitHub Actions CI (install, typecheck, lint, test, build) · *deps:* DB0-04, DB0-05, DB0-06, DB0-08 · *done:* workflow file present; green logic.
