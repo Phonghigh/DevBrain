@@ -17,6 +17,8 @@ updates it (via the `learning-log` skill) each time a task introduces new concep
 | Monorepo workspace package | not-started | 2026-07-14 | Introduced by DB0-05 (`packages/shared`). See [learn-log](learn-log/DB0-05-scaffold-shared.md) §4. |
 | TypeScript project references (`tsc -b`, `composite`) | not-started | 2026-07-16 | Introduced by DB0-05; became load-bearing in DB0-08 — `apps/web` declares a reference to `packages/shared` and runs `tsc -b`, so a fresh clone builds `shared` on demand instead of failing to resolve `dist/`. See [learn-log](learn-log/DB0-08-scaffold-web.md) §4–5. |
 | Vitest (test runner basics) | not-started | 2026-07-16 | Introduced by DB0-05; extended in DB0-09 to the api's e2e suite (chosen over Nest's default Jest for one runner repo-wide). See [learn-log](learn-log/DB0-09-vitest-supertest-api.md) §4–5. |
+| Render testing (jsdom + Testing Library, query by role) | not-started | 2026-07-16 | Introduced by DB0-10 — jsdom is a fake browser in Node; `getByRole('heading', {name})` asserts *meaning* (real heading for a screen reader), not just that text exists. Replaces DB0-08's manual headless-browser ceremony. See [learn-log](learn-log/DB0-10-vitest-testing-library-web.md) §4. |
+| Mutation testing (break it on purpose) | not-started | 2026-07-16 | Introduced by DB0-10 as a habit, earned by DB0-09's near-miss: a test that has never failed isn't evidence yet. Downgraded `<h1>` → `<p>` and confirmed the test caught it. See [learn-log](learn-log/DB0-10-vitest-testing-library-web.md) §7. |
 | e2e vs unit testing + supertest | not-started | 2026-07-16 | Introduced by DB0-09 — boot the whole Nest app in memory, fake-HTTP it with supertest, no real port (contrast DB0-07's zombie server on port 3000). Template every later api route reuses. See [learn-log](learn-log/DB0-09-vitest-supertest-api.md) §4. |
 | Decorator metadata (`emitDecoratorMetadata`, `design:paramtypes`) | not-started | 2026-07-16 | **The key idea behind DB0-09.** How Nest's DI knows what to inject. esbuild (vitest's default) can't emit it, so Nest silently injects `undefined` — no error. Fixed with SWC. See [learn-log](learn-log/DB0-09-vitest-supertest-api.md) §4, §7. |
 | NestJS module/controller/provider + decorators | not-started | 2026-07-14 | Introduced by DB0-06 (`apps/api`, `/health`). See [learn-log](learn-log/DB0-06-scaffold-api.md) §4. |
@@ -49,6 +51,8 @@ mindmap
       JSX automatic runtime
       e2e vs unit testing and supertest
       Decorator metadata and design paramtypes
+      Render testing with jsdom and Testing Library
+      Mutation testing
 ```
 
 ## Session Journal
@@ -75,4 +79,9 @@ mindmap
 - Then I nearly got it wrong in the *other* direction: after adding SWC the probe still said `injected: false`, which looked like "SWC changed nothing." It was my `instanceof` assertion that was broken (unreliable under Vite's SSR transform) — injection was working fine. Re-running the esbuild baseline with the same detailed probe settled it. Lesson: when a result contradicts your expectation, suspect your measurement first, and compare like with like before concluding.
 - Also verified the e2e passes with **no `.env` and no `dev.db`** (it creates an empty, gitignored one), so DB0-11's CI won't need secrets or a DB setup step.
 - Stuck on / revisit next time: one loose end I chose not to expand scope for — `test/` isn't covered by `pnpm -w typecheck` (matching `packages/shared`'s existing convention, where `src/__tests__` is excluded too). Type errors in test files surface only when the tests run. Worth revisiting if it ever bites.
-- Next: DB0-10 (vitest + Testing Library in `apps/web`, first render test).
+- Covered: DB0-10 — the web app's first render test: jsdom (a fake browser inside Node) + Testing Library, rendering `InboxRoute` in a `MemoryRouter` and asserting its heading. This retires DB0-08's manual ceremony of booting a dev server and driving headless Edge — the same proof now runs in 0.4s on every `pnpm -w test`. All three packages now have tests (4 total), so DB0-11's CI has something real to run.
+- Applied yesterday's lesson deliberately: rather than trust a first-run pass, I broke the component on purpose (`<h1>Inbox</h1>` → `<p>Inbox</p>`, same text, no longer a heading) and confirmed the test failed with a useful message. This is *why* `getByRole('heading', {name})` beats searching for the text "Inbox" — the role assertion catches an accessibility regression that a text search would sail past. A test you've never seen fail is a test you don't know you have.
+- Two small judgement calls worth remembering: (1) web's test config goes in `vite.config.ts`, not a separate `vitest.config.ts` like the api's — a standalone config *replaces* rather than merges, which would silently drop the React plugin. (2) I installed `@testing-library/user-event` out of habit and then removed it; nothing in this task types or clicks, and an unused dependency is a small lie about what the code needs.
+- Payoff worth noticing: DB0-08's decision to keep `router.tsx` free of its own Router provider made this test trivial exactly one task later. Design choices pay out fast.
+- Stuck on / revisit next time: nothing. Filed a follow-up rather than widening scope — the route *table* itself (redirect, route mapping) is still only verified by hand in a browser; a `MemoryRouter` test over `AppRoutes` would automate it.
+- Next: DB0-11 (GitHub Actions CI — the last Phase 0 task).
