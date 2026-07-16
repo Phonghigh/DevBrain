@@ -16,9 +16,11 @@ updates it (via the `learning-log` skill) each time a task introduces new concep
 |---|---|---|---|
 | Monorepo workspace package | not-started | 2026-07-14 | Introduced by DB0-05 (`packages/shared`). See [learn-log](learn-log/DB0-05-scaffold-shared.md) §4. |
 | TypeScript project references (`tsc -b`, `composite`) | not-started | 2026-07-16 | Introduced by DB0-05; became load-bearing in DB0-08 — `apps/web` declares a reference to `packages/shared` and runs `tsc -b`, so a fresh clone builds `shared` on demand instead of failing to resolve `dist/`. See [learn-log](learn-log/DB0-08-scaffold-web.md) §4–5. |
-| Vitest (test runner basics) | not-started | 2026-07-14 | Introduced by DB0-05. See [learn-log](learn-log/DB0-05-scaffold-shared.md) §4. |
+| Vitest (test runner basics) | not-started | 2026-07-16 | Introduced by DB0-05; extended in DB0-09 to the api's e2e suite (chosen over Nest's default Jest for one runner repo-wide). See [learn-log](learn-log/DB0-09-vitest-supertest-api.md) §4–5. |
+| e2e vs unit testing + supertest | not-started | 2026-07-16 | Introduced by DB0-09 — boot the whole Nest app in memory, fake-HTTP it with supertest, no real port (contrast DB0-07's zombie server on port 3000). Template every later api route reuses. See [learn-log](learn-log/DB0-09-vitest-supertest-api.md) §4. |
+| Decorator metadata (`emitDecoratorMetadata`, `design:paramtypes`) | not-started | 2026-07-16 | **The key idea behind DB0-09.** How Nest's DI knows what to inject. esbuild (vitest's default) can't emit it, so Nest silently injects `undefined` — no error. Fixed with SWC. See [learn-log](learn-log/DB0-09-vitest-supertest-api.md) §4, §7. |
 | NestJS module/controller/provider + decorators | not-started | 2026-07-14 | Introduced by DB0-06 (`apps/api`, `/health`). See [learn-log](learn-log/DB0-06-scaffold-api.md) §4. |
-| Dependency Injection (DI) | understood | 2026-07-14 | First seen (trivially) in DB0-06; became concrete in DB0-07 — `PrismaService` injected + `$connect()` verified via a real boot log. See [learn-log](learn-log/DB0-07-prisma-in-api.md). |
+| Dependency Injection (DI) | understood | 2026-07-16 | First seen (trivially) in DB0-06; became concrete in DB0-07 — `PrismaService` injected + `$connect()` verified via a real boot log. DB0-09 exposed the *mechanism* underneath it: DI only works because the compiler writes down constructor param types. See [learn-log](learn-log/DB0-09-vitest-supertest-api.md) §4. |
 | ORM / Prisma (schema → generate → migrate) | shaky | 2026-07-14 | Wired end-to-end in DB0-07, but hit real version-specific surprises (driver adapters, prisma.config.ts) — needs a second pass once real models land in DB1-01. See [learn-log](learn-log/DB0-07-prisma-in-api.md). |
 | TS incremental compilation (`.tsbuildinfo` staleness) | shaky | 2026-07-16 | Hit a real bug in DB0-07: stale buildinfo made `tsc` skip emitting after `dist/` was deleted. **Hit again in DB0-08** — `tsc -b` refused to rebuild `shared` for the same reason. Recurring trap: if a build tool says "nothing to do" and you know it's wrong, suspect the cache file. See [learn-log](learn-log/DB0-08-scaffold-web.md) §7. |
 | Vite (dev server + production bundler) | not-started | 2026-07-16 | Introduced by DB0-08 (`apps/web`). On-demand transform in dev (~580ms boot) vs. pre-bundled output for prod. See [learn-log](learn-log/DB0-08-scaffold-web.md) §4. |
@@ -45,6 +47,8 @@ mindmap
       Vite dev server and bundler
       SPA routing with react-router
       JSX automatic runtime
+      e2e vs unit testing and supertest
+      Decorator metadata and design paramtypes
 ```
 
 ## Session Journal
@@ -66,4 +70,9 @@ mindmap
 - Hit the stale `.tsbuildinfo` trap for the **second task running** — this is now a known recurring trap, not a one-off.
 - Verifying "the page renders" took three attempts: curl only proves the shell was served (200 on every route is the history fallback, not evidence); headless Edge `--dump-dom` returned zero bytes; a Node SSR probe (esbuild + `renderToStaticMarkup`) finally printed the real HTML for all routes. Went back to Edge with `Start-Process -RedirectStandardOutput` to confirm the `/` → Inbox redirect the SSR probe couldn't judge. Lesson: when a tool fights you three times, change tools rather than flags.
 - Stuck on / revisit next time: nothing blocking. `apps/web` has no tests yet — that's DB0-08's direct follow-up, DB0-10.
-- Next: DB0-09 (vitest + supertest in `apps/api`, first `/health` e2e).
+- Covered: DB0-09 — the api's first e2e test (`GET /health` → 200), booting the whole Nest app in memory with `Test.createTestingModule` + supertest. Chose Vitest over Nest's default Jest so the repo has one test runner, not two.
+- **The lesson of the day, and it's a big one:** the first version of this test **passed while the setup was broken.** Vitest transpiles with esbuild, which can't emit decorator metadata — the constructor param types Nest's DI reads to know what to inject. Nothing in the api injects anything *yet*, so the test was green. A probe controller mimicking DB1-03 exposed it: `paramtypes: undefined`, and Nest **silently** built the controller with `this.prisma === undefined` instead of throwing. Fixed with SWC (`unplugin-swc`).
+- Then I nearly got it wrong in the *other* direction: after adding SWC the probe still said `injected: false`, which looked like "SWC changed nothing." It was my `instanceof` assertion that was broken (unreliable under Vite's SSR transform) — injection was working fine. Re-running the esbuild baseline with the same detailed probe settled it. Lesson: when a result contradicts your expectation, suspect your measurement first, and compare like with like before concluding.
+- Also verified the e2e passes with **no `.env` and no `dev.db`** (it creates an empty, gitignored one), so DB0-11's CI won't need secrets or a DB setup step.
+- Stuck on / revisit next time: one loose end I chose not to expand scope for — `test/` isn't covered by `pnpm -w typecheck` (matching `packages/shared`'s existing convention, where `src/__tests__` is excluded too). Type errors in test files surface only when the tests run. Worth revisiting if it ever bites.
+- Next: DB0-10 (vitest + Testing Library in `apps/web`, first render test).

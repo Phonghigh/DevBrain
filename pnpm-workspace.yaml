@@ -12,3 +12,7 @@ allowBuilds:
   # better-sqlite3 is the standard synchronous SQLite driver for Node, used here as
   # Prisma's driver adapter. Its postinstall compiles a native addon from source.
   better-sqlite3: true
+  # @swc/core is the Rust TypeScript compiler, used here only in tests: unlike esbuild
+  # (vitest's default) it emits decorator metadata, which NestJS's DI needs to know what
+  # to inject. Official SWC package; its postinstall just fetches the native binary.
+  '@swc/core': true
