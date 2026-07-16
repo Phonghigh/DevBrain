@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# One run per branch/PR: a new push cancels the previous, still-running check
+# instead of queueing behind it.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Reads the `packageManager` field in package.json, so the pnpm version here
+      # can never drift from the one used locally.
+      - uses: pnpm/action-setup@v4
+
+      # Node 20 is the floor declared in the root package.json `engines`, so CI verifies
+      # the oldest version this repo claims to support (local dev runs 24). Note vite,
+      # jsdom and prisma all require ^20.19 specifically — this resolves to the latest
+      # 20.x, which satisfies them, but the margin is thin.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      # --frozen-lockfile fails rather than silently rewriting pnpm-lock.yaml, so a
+      # lockfile that wasn't committed is caught here instead of drifting.
+      - run: pnpm install --frozen-lockfile
+
+      # Each step maps 1:1 to a root script, so `pnpm <step>` reproduces CI locally.
+      # No DATABASE_URL / .env is set on purpose: the api falls back to a local SQLite
+      # file, and this proves a fresh clone needs no secrets to verify.
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm build

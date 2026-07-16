@@ -21,7 +21,7 @@ Phases: **P0** Foundations · **P1** Capture + DB core · **P2** Distill + lint 
 - [x] **DB0-08** — Scaffold `apps/web` (Vite + React + TS + router; `/inbox` `/distill` `/browse` stubs) · *deps:* DB0-05 · *done:* `pnpm --filter web dev` serves a shell with the 3 routes.
 - [x] **DB0-09** — Vitest + supertest in `apps/api` + first e2e (`/health`) · *deps:* DB0-06 · *done:* `pnpm --filter api test` green.
 - [x] **DB0-10** — Vitest + Testing Library in `apps/web` + first render test · *deps:* DB0-08 · *done:* `pnpm --filter web test` green.
-- [ ] **DB0-11** — GitHub Actions CI (install, typecheck, lint, test, build) · *deps:* DB0-04, DB0-05, DB0-06, DB0-08 · *done:* workflow file present; green logic.
+- [x] **DB0-11** — GitHub Actions CI (install, typecheck, lint, test, build) · *deps:* DB0-04, DB0-05, DB0-06, DB0-08 · *done:* workflow file present; green logic.
 
 ## Phase 1 — Capture + DB core
 - [ ] **DB1-01** — Prisma schema `Capture`/`Concept`/`Link` (spec §5) + first migration · *deps:* DB0-07 · *done:* `migrate dev` creates the 3 tables; typed client generated.
