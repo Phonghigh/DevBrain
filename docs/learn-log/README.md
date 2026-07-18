@@ -53,6 +53,7 @@ Newest at the top. One row per task report.
 
 | Task | Report | Difficulty | Status |
 |---|---|---|---|
+| DB1-03 | [CapturesModule: POST /captures (+ validation)](DB1-03-captures-post-endpoint.md) | ⭐⭐ | not-studied |
 | DB1-02 | [Shared Capture DTOs](DB1-02-shared-capture-dtos.md) | ⭐⭐⭐ | not-studied |
 | DB1-01 | [Prisma schema Capture/Concept/Link + first migration](DB1-01-prisma-schema-capture-concept-link.md) | ⭐⭐ | not-studied |
 | DB0-10 | [Vitest + Testing Library in apps/web (first render test)](DB0-10-vitest-testing-library-web.md) | ⭐⭐ | not-studied |
