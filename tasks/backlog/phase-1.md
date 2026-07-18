@@ -118,3 +118,44 @@ newest first. This is what the Inbox screen (DB1-06) will call to show the raw q
 inbox use case, but nothing in the spec says listing *all* captures should be
 impossible — making `status` optional (list-all when omitted) is a strict superset of
 what's asked for and costs nothing extra to implement or test.
+
+---
+
+### DB1-05 — Web API client (typed fetch wrapper via shared)
+
+**Objective.** The first web-side code that talks to `apps/api` — a small typed
+wrapper around `fetch` so DB1-06's Inbox screen doesn't hand-roll request/response
+shapes.
+
+**Depends on.** `DB0-08`, `DB1-02`.
+
+**Touches.** `apps/web/src/api/`, `apps/web/.env.example`.
+
+**Steps.**
+1. `apps/web/src/api/client.ts` — `createCapture(dto: CreateCaptureDto):
+   Promise<CaptureDto>` (`POST /captures`) and `listCaptures(status?: CaptureStatus):
+   Promise<CaptureDto[]>` (`GET /captures` with an optional `?status=`), both typed
+   entirely off `@devbrain/shared`'s `CreateCaptureDto`/`CaptureDto`/`CaptureStatus` —
+   no shapes redeclared here.
+2. Base URL from `import.meta.env.VITE_API_BASE_URL`, falling back to
+   `http://localhost:3000` (matching the api's own default port from `main.ts`) so the
+   app works out of the box in local dev with zero required config.
+3. A shared error path: a non-2xx response throws an `Error` carrying the status code
+   and response body, so callers get something actionable instead of a generic parse
+   failure.
+4. `apps/web/.env.example` documenting `VITE_API_BASE_URL` (matching `apps/api`'s
+   existing `.env.example` convention).
+5. `apps/web/src/api/client.test.ts` — unit tests with `fetch` mocked (`vi.fn()`), not
+   a real network call: `createCapture` posts the right URL/method/body and returns the
+   parsed JSON; `listCaptures` appends `?status=` only when given a status; a non-2xx
+   response rejects with an `Error`.
+
+**Done when.**
+- `createCapture`/`listCaptures` exported, both typed against the shared DTOs.
+- Unit-tested with a mocked `fetch` (spec's own wording for this task).
+- typecheck/lint/test green across all 4 packages.
+
+**Notes.** No real HTTP call in the test suite — DB1-06's render test (next task) is
+where this client gets exercised against a real, running api in a manual/dev-server
+check; the unit test here only proves the client builds the right request and parses
+the right response.
