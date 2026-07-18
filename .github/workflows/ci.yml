@@ -22,13 +22,15 @@ jobs:
       # can never drift from the one used locally.
       - uses: pnpm/action-setup@v4
 
-      # Node 20 is the floor declared in the root package.json `engines`, so CI verifies
-      # the oldest version this repo claims to support (local dev runs 24). Note vite,
-      # jsdom and prisma all require ^20.19 specifically — this resolves to the latest
-      # 20.x, which satisfies them, but the margin is thin.
+      # Node 22 is the floor declared in the root package.json `engines`, so CI verifies
+      # the oldest version this repo claims to support (local dev runs 24). Bumped from
+      # 20: pnpm 11.9.0 (pinned in `packageManager`) added a hard requirement on
+      # Node >=22.13 (it uses the built-in `node:sqlite` module) — Node 20 CI failed
+      # with ERR_UNKNOWN_BUILTIN_MODULE before any repo code even ran. Node 20 is also
+      # EOL as of April 2026, so this isn't just chasing pnpm.
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
 
       # --frozen-lockfile fails rather than silently rewriting pnpm-lock.yaml, so a
