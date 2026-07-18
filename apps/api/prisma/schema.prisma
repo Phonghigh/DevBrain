@@ -1,8 +1,5 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
-//
-// Deliberately no models yet — this task (DB0-07) only wires up the toolchain.
-// Real models (Capture, Concept, Link — spec §5) land in DB1-01.
 
 generator client {
   provider = "prisma-client"
@@ -11,4 +8,36 @@ generator client {
 
 datasource db {
   provider = "sqlite"
+}
+
+model Capture {
+  id        String    @id @default(cuid())
+  source    String // e.g. "chatgpt", "claude", "manual"
+  task      String? // context: what you were doing when you dumped it
+  rawText   String // the raw GPT dump
+  status    String    @default("raw") // "raw" | "distilled" | "archived"
+  createdAt DateTime  @default(now())
+  concepts  Concept[] // notes born from this capture
+}
+
+model Concept {
+  id              String   @id @default(cuid())
+  slug            String   @unique // identifier for [[wikilink]]
+  title           String
+  body            String   @default("") // the self-written note
+  type            String   @default("concept") // "concept" | "stub"
+  sourceCaptureId String?
+  sourceCapture   Capture? @relation(fields: [sourceCaptureId], references: [id])
+  firstSeen       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  outLinks        Link[]   @relation("out") // outgoing edges
+}
+
+model Link {
+  id            String  @id @default(cuid())
+  fromConceptId String
+  fromConcept   Concept @relation("out", fields: [fromConceptId], references: [id])
+  toSlug        String // points at the target slug (may be a body-less stub)
+
+  @@unique([fromConceptId, toSlug])
 }

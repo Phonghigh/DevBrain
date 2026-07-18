@@ -24,7 +24,7 @@ Phases: **P0** Foundations · **P1** Capture + DB core · **P2** Distill + lint 
 - [x] **DB0-11** — GitHub Actions CI (install, typecheck, lint, test, build) · *deps:* DB0-04, DB0-05, DB0-06, DB0-08 · *done:* workflow file present; green logic.
 
 ## Phase 1 — Capture + DB core
-- [ ] **DB1-01** — Prisma schema `Capture`/`Concept`/`Link` (spec §5) + first migration · *deps:* DB0-07 · *done:* `migrate dev` creates the 3 tables; typed client generated.
+- [x] **DB1-01** — Prisma schema `Capture`/`Concept`/`Link` (spec §5) + first migration · *deps:* DB0-07 · *done:* `migrate dev` creates the 3 tables; typed client generated.
 - [ ] **DB1-02** — Shared Capture DTOs (`CreateCaptureDto`, `CaptureDto`, `CaptureStatus`) · *deps:* DB0-05, DB1-01 · *done:* types exported; consumed by api.
 - [ ] **DB1-03** — `CapturesModule`: `POST /captures` (+ validation) · *deps:* DB1-01, DB1-02 · *done:* creates a capture `status=raw`; e2e test.
 - [ ] **DB1-04** — `GET /captures?status=raw` (inbox, newest first) · *deps:* DB1-03 · *done:* returns filtered list; e2e test.

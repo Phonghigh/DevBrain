@@ -1,6 +1,6 @@
 # Learning Log
 
-Current phase: Phase 0 — Foundations
+Current phase: Phase 1 — Capture + DB core
 
 See also: global dev brain at `~/.claude/knowledge/dev-brain.md` — patterns,
 tech/approach preferences, and general concepts that carry over to future projects
@@ -23,7 +23,10 @@ updates it (via the `learning-log` skill) each time a task introduces new concep
 | Decorator metadata (`emitDecoratorMetadata`, `design:paramtypes`) | not-started | 2026-07-16 | **The key idea behind DB0-09.** How Nest's DI knows what to inject. esbuild (vitest's default) can't emit it, so Nest silently injects `undefined` — no error. Fixed with SWC. See [learn-log](learn-log/DB0-09-vitest-supertest-api.md) §4, §7. |
 | NestJS module/controller/provider + decorators | not-started | 2026-07-14 | Introduced by DB0-06 (`apps/api`, `/health`). See [learn-log](learn-log/DB0-06-scaffold-api.md) §4. |
 | Dependency Injection (DI) | understood | 2026-07-16 | First seen (trivially) in DB0-06; became concrete in DB0-07 — `PrismaService` injected + `$connect()` verified via a real boot log. DB0-09 exposed the *mechanism* underneath it: DI only works because the compiler writes down constructor param types. See [learn-log](learn-log/DB0-09-vitest-supertest-api.md) §4. |
-| ORM / Prisma (schema → generate → migrate) | shaky | 2026-07-14 | Wired end-to-end in DB0-07, but hit real version-specific surprises (driver adapters, prisma.config.ts) — needs a second pass once real models land in DB1-01. See [learn-log](learn-log/DB0-07-prisma-in-api.md). |
+| ORM / Prisma (schema → generate → migrate) | understood | 2026-07-18 | The second pass DB0-07 flagged as needed: real models landed in DB1-01, `migrate dev` created + applied a migration, and a real CRUD probe (Capture → Concept → Link → backlink query) proved the typed client works end-to-end. Also caught and fixed a real gotcha — see "Stale generated code" below. See [learn-log](learn-log/DB1-01-prisma-schema-capture-concept-link.md). |
+| Self-relation / reverse query (backlinks via string + query, not FK) | not-started | 2026-07-18 | Introduced by DB1-01 — `Link.toSlug` is a plain `String`, not a foreign key, so it can point at a slug with no `Concept` row yet (a stub). Backlinks are never stored redundantly; they're computed later via `Link.where(toSlug=X)` + join to `fromConcept`. See [learn-log](learn-log/DB1-01-prisma-schema-capture-concept-link.md) §4. |
+| Migration file (versioned SQL, like a git commit for DB structure) | not-started | 2026-07-18 | Introduced properly by DB1-01 — DB0-07's migration was an empty no-op (zero models). This one produced a real `migration.sql` with 3 `CREATE TABLE`s, a foreign key, and 2 unique indexes, checked into git as permanent, replayable history. See [learn-log](learn-log/DB1-01-prisma-schema-capture-concept-link.md) §4. |
+| Stale generated code / generator not auto-triggered | not-started | 2026-07-18 | The DB1-01 gotcha: `prisma migrate dev` applied the migration to the DB successfully but did **not** regenerate the typed client — `internal/class.ts` still embedded the old, empty schema until `prisma generate` was run explicitly. Same family of bug as the `.tsbuildinfo` staleness trap (DB0-07, DB0-08): a success message doesn't prove a generated artifact is current — verify it directly. See [learn-log](learn-log/DB1-01-prisma-schema-capture-concept-link.md) §7. |
 | TS incremental compilation (`.tsbuildinfo` staleness) | shaky | 2026-07-16 | Hit a real bug in DB0-07: stale buildinfo made `tsc` skip emitting after `dist/` was deleted. **Hit again in DB0-08** — `tsc -b` refused to rebuild `shared` for the same reason. Recurring trap: if a build tool says "nothing to do" and you know it's wrong, suspect the cache file. See [learn-log](learn-log/DB0-08-scaffold-web.md) §7. |
 | Vite (dev server + production bundler) | not-started | 2026-07-16 | Introduced by DB0-08 (`apps/web`). On-demand transform in dev (~580ms boot) vs. pre-bundled output for prod. See [learn-log](learn-log/DB0-08-scaffold-web.md) §4. |
 | SPA routing (react-router: routes, `<Outlet/>`, `NavLink`, history fallback) | not-started | 2026-07-16 | Introduced by DB0-08 — the 3 v1 screens. Key insight: every URL serves the same `index.html`; JS picks the page. Route table kept Router-free so tests can supply `MemoryRouter` (DB0-10). See [learn-log](learn-log/DB0-08-scaffold-web.md) §4. |
@@ -38,8 +41,8 @@ mindmap
   root((DevBrain Learning))
     Understood
       Dependency injection
+      Prisma schema generate migrate
     Shaky
-      Prisma driver adapters
       TS incremental compilation
     Not started
       Monorepo workspace package
@@ -53,6 +56,9 @@ mindmap
       Decorator metadata and design paramtypes
       Render testing with jsdom and Testing Library
       Mutation testing
+      Backlinks via string and query
+      Migration files
+      Stale generated code
 ```
 
 ## Session Journal
@@ -85,3 +91,12 @@ mindmap
 - Payoff worth noticing: DB0-08's decision to keep `router.tsx` free of its own Router provider made this test trivial exactly one task later. Design choices pay out fast.
 - Stuck on / revisit next time: nothing. Filed a follow-up rather than widening scope — the route *table* itself (redirect, route mapping) is still only verified by hand in a browser; a `MemoryRouter` test over `AppRoutes` would automate it.
 - Next: DB0-11 (GitHub Actions CI — the last Phase 0 task).
+
+### 2026-07-18
+
+- Covered: DB0-11 — GitHub Actions CI, closing out Phase 0 (11/11 done). Validated everything checkable without pushing: parsed the workflow YAML programmatically, confirmed all 4 referenced root scripts exist, and simulated the CI environment end-to-end (no `.env`, no `dev.db`, all caches cleared) — typecheck/lint/test/build all green with zero secrets or DB setup needed.
+- Covered: DB1-01 — the first Phase 1 task, and DevBrain's first real data model. Copied the `Capture`/`Concept`/`Link` schema from spec §5 into `apps/api/prisma/schema.prisma` (a straight transcription, not a design decision — the shape was already locked in the brainstorm), then ran `prisma migrate dev` to create and apply the first real migration.
+- **The lesson of the day:** `prisma migrate dev` reported full success and the database really did get the 3 tables — but the *typed client* (`src/generated/prisma/`) silently kept the old, empty schema. `tsc` saw no error because nothing yet imports `Capture`/`Concept`/`Link`, so there was nothing to type-check against. Only caught it by directly reading the generated `internal/class.ts` and noticing `runtimeDataModel: {models: {}}`. Fixed by running `prisma generate` explicitly, then re-verified the same file now embeds the real models. This is the same family of bug as DB0-07/DB0-08's `.tsbuildinfo` staleness: **a tool's success message tells you its own step worked, not that every downstream artifact is current — verify the artifact, not just the exit code.**
+- Went further than "migration applied": wrote a throwaway e2e test that created a real `Capture` → `Concept` → `Link` chain and ran the exact backlink query pattern (`Link.where(toSlug=X)` + join) spec §5 describes, confirmed it passed, then deleted it — proof the schema works at runtime, not just that SQL got generated.
+- Promoted "ORM / Prisma" from `shaky` to `understood` — this was the second pass DB0-07 flagged as needed, and it now works end-to-end with a real gotcha diagnosed and fixed. Learned two new concepts: self-relation/reverse-query backlinks (`Link.toSlug` is a plain string, not a FK, so it can point at not-yet-existing stub concepts), and migration files as versioned DB history.
+- Stuck on / revisit next time: nothing blocking. Next eligible: DB1-02 (Shared Capture DTOs) — wraps these Prisma models in `CreateCaptureDto`/`CaptureDto` types in `packages/shared` so Prisma types don't leak straight into the API surface.

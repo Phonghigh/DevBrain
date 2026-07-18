@@ -53,6 +53,7 @@ Newest at the top. One row per task report.
 
 | Task | Report | Difficulty | Status |
 |---|---|---|---|
+| DB1-01 | [Prisma schema Capture/Concept/Link + first migration](DB1-01-prisma-schema-capture-concept-link.md) | ⭐⭐ | not-studied |
 | DB0-10 | [Vitest + Testing Library in apps/web (first render test)](DB0-10-vitest-testing-library-web.md) | ⭐⭐ | not-studied |
 | DB0-09 | [Vitest + supertest in apps/api (first e2e)](DB0-09-vitest-supertest-api.md) | ⭐⭐⭐ | not-studied |
 | DB0-08 | [Scaffold apps/web (Vite + React + router)](DB0-08-scaffold-web.md) | ⭐⭐ | not-studied |
