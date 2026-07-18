@@ -15,5 +15,12 @@
     "baseUrl": "./"
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  // *.spec.ts (colocated unit tests, vitest's src/**/*.spec.ts pattern) are excluded
+  // the same way packages/shared excludes src/__tests__ — vitest transpiles them itself,
+  // so they don't need tsc, and excluding keeps them out of `nest build`'s dist output.
+  "exclude": ["node_modules", "dist", "src/**/*.spec.ts"],
+  // @devbrain/shared resolves to dist/, which only exists once built. Declaring the
+  // reference lets `tsc -b` (see the typecheck script) build it on demand — same fix
+  // DB0-08 applied to apps/web for the identical fresh-clone TS2307 failure.
+  "references": [{ "path": "../../packages/shared" }]
 }

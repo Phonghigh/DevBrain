@@ -1,3 +1,5 @@
+export type { CaptureDto, CaptureStatus, CreateCaptureDto } from './capture.js';
+
 /**
  * Thresholds the distill-lint rule uses (spec §6.3). Shared so the api's lint
  * service and the web UI's warning display always agree on the same numbers.

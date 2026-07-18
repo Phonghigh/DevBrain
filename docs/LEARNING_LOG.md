@@ -15,7 +15,10 @@ updates it (via the `learning-log` skill) each time a task introduces new concep
 | Concept | Status | Last touched | Notes |
 |---|---|---|---|
 | Monorepo workspace package | not-started | 2026-07-14 | Introduced by DB0-05 (`packages/shared`). See [learn-log](learn-log/DB0-05-scaffold-shared.md) §4. |
-| TypeScript project references (`tsc -b`, `composite`) | not-started | 2026-07-16 | Introduced by DB0-05; became load-bearing in DB0-08 — `apps/web` declares a reference to `packages/shared` and runs `tsc -b`, so a fresh clone builds `shared` on demand instead of failing to resolve `dist/`. See [learn-log](learn-log/DB0-08-scaffold-web.md) §4–5. |
+| TypeScript project references (`tsc -b`, `composite`) | understood | 2026-07-18 | Introduced by DB0-05, load-bearing in DB0-08 (`apps/web`). DB1-02 hit the *identical* fresh-clone `TS2307` failure independently in `apps/api` (its first-ever import of `@devbrain/shared`) and applied the identical fix (project reference + `tsc -b`) — diagnosed and fixed correctly twice, in two different packages, without needing to re-derive it. See [learn-log](learn-log/DB1-02-shared-capture-dtos.md) §4, §7. |
+| DTO (Data Transfer Object) | understood | 2026-07-18 | Introduced by DB1-02 — a type describing data crossing a boundary (HTTP request/response), deliberately kept separate from the DB's internal shape. `CaptureDto.createdAt` is a `string`; Prisma's `Capture.createdAt` is a real `Date` — JSON has no date type, so the boundary type must differ from the storage type on purpose. Straightforward, no real struggle. See [learn-log](learn-log/DB1-02-shared-capture-dtos.md) §4. |
+| `workspace:*` dependency (pnpm monorepo linking) | not-started | 2026-07-18 | `apps/web` had this since DB0-08, but DB1-02 is the first time it was added by hand in this build loop — `apps/api/package.json` got its first `workspace:*` dependency (`@devbrain/shared`), linked via `pnpm install` instead of publishing to npm. See [learn-log](learn-log/DB1-02-shared-capture-dtos.md) §4. |
+| `noEmit` vs. a shared build config (the near-miss) | not-started | 2026-07-18 | DB1-02's real lesson: copying `apps/web`'s `noEmit: true` convention onto `apps/api/tsconfig.json` silently broke `nest build` — **zero output, no error** — because that file is shared between the typecheck script *and* the real application build (`nest build` reads it too), unlike web where Vite alone produces real output. Only caught by testing `nest build` in isolation before/after the change. Same family as DB1-01's stale Prisma client and DB0-07/DB0-08's `.tsbuildinfo` staleness: **verify a build artifact directly, don't trust a clean exit / no-error.** See [learn-log](learn-log/DB1-02-shared-capture-dtos.md) §7. |
 | Vitest (test runner basics) | not-started | 2026-07-16 | Introduced by DB0-05; extended in DB0-09 to the api's e2e suite (chosen over Nest's default Jest for one runner repo-wide). See [learn-log](learn-log/DB0-09-vitest-supertest-api.md) §4–5. |
 | Render testing (jsdom + Testing Library, query by role) | not-started | 2026-07-16 | Introduced by DB0-10 — jsdom is a fake browser in Node; `getByRole('heading', {name})` asserts *meaning* (real heading for a screen reader), not just that text exists. Replaces DB0-08's manual headless-browser ceremony. See [learn-log](learn-log/DB0-10-vitest-testing-library-web.md) §4. |
 | Mutation testing (break it on purpose) | not-started | 2026-07-16 | Introduced by DB0-10 as a habit, earned by DB0-09's near-miss: a test that has never failed isn't evidence yet. Downgraded `<h1>` → `<p>` and confirmed the test caught it. See [learn-log](learn-log/DB0-10-vitest-testing-library-web.md) §7. |
@@ -42,11 +45,12 @@ mindmap
     Understood
       Dependency injection
       Prisma schema generate migrate
+      TS project references
+      DTO data transfer object
     Shaky
       TS incremental compilation
     Not started
       Monorepo workspace package
-      TS project references
       Vitest basics
       NestJS module controller provider
       Vite dev server and bundler
@@ -59,6 +63,8 @@ mindmap
       Backlinks via string and query
       Migration files
       Stale generated code
+      Workspace star dependency
+      noEmit vs shared build config
 ```
 
 ## Session Journal
@@ -99,4 +105,7 @@ mindmap
 - **The lesson of the day:** `prisma migrate dev` reported full success and the database really did get the 3 tables — but the *typed client* (`src/generated/prisma/`) silently kept the old, empty schema. `tsc` saw no error because nothing yet imports `Capture`/`Concept`/`Link`, so there was nothing to type-check against. Only caught it by directly reading the generated `internal/class.ts` and noticing `runtimeDataModel: {models: {}}`. Fixed by running `prisma generate` explicitly, then re-verified the same file now embeds the real models. This is the same family of bug as DB0-07/DB0-08's `.tsbuildinfo` staleness: **a tool's success message tells you its own step worked, not that every downstream artifact is current — verify the artifact, not just the exit code.**
 - Went further than "migration applied": wrote a throwaway e2e test that created a real `Capture` → `Concept` → `Link` chain and ran the exact backlink query pattern (`Link.where(toSlug=X)` + join) spec §5 describes, confirmed it passed, then deleted it — proof the schema works at runtime, not just that SQL got generated.
 - Promoted "ORM / Prisma" from `shaky` to `understood` — this was the second pass DB0-07 flagged as needed, and it now works end-to-end with a real gotcha diagnosed and fixed. Learned two new concepts: self-relation/reverse-query backlinks (`Link.toSlug` is a plain string, not a FK, so it can point at not-yet-existing stub concepts), and migration files as versioned DB history.
-- Stuck on / revisit next time: nothing blocking. Next eligible: DB1-02 (Shared Capture DTOs) — wraps these Prisma models in `CreateCaptureDto`/`CaptureDto` types in `packages/shared` so Prisma types don't leak straight into the API surface.
+- Covered: DB1-02 — `CaptureStatus`/`CreateCaptureDto`/`CaptureDto` in `packages/shared`. The DTO shapes themselves were simple; the real work was in consuming them from `apps/api` for the first time. That import reproduced DB0-08's exact fresh-clone `TS2307` bug in a brand-new place (`apps/api` had never imported `@devbrain/shared` before) — fixed the same way (project reference + `tsc -b`), proving the fix generalizes rather than being a one-off web quirk.
+- A genuine near-miss worth remembering: tried tidying `apps/api/tsconfig.json` to match `apps/web`'s `noEmit: true` pattern (Vite does the real build there, so `tsc` is "just a checker"). For `apps/api`, that same file is *also* what `nest build` reads to produce the real server — `noEmit: true` silently made `nest build` emit **nothing**, no error, `dist/main.js` just didn't exist. Only caught because I explicitly re-ran `nest build` in isolation after the change instead of trusting the full suite's green. Reverted, confirmed the "problem" it was solving (typecheck also writing to `dist/`) is harmless — `nest-cli.json`'s `deleteOutDir: true` means the real build step always cleans and rewrites `dist/` afterward anyway.
+- Did a full clean-state verification (deleted every `dist/` and `.tsbuildinfo` repo-wide, ran typecheck → lint → test → build in CI order), then booted the compiled server for real and curled `/health`. All green.
+- Stuck on / revisit next time: nothing blocking. Next eligible: DB1-03 (`CapturesModule`: `POST /captures` + validation) — will use `CreateCaptureDto` for the request body and the `toCaptureDto` mapper (written in DB1-02) to shape the response.
