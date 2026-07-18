@@ -1,4 +1,4 @@
-import type { CaptureDto } from '@devbrain/shared';
+import type { CaptureDto, CaptureStatus } from '@devbrain/shared';
 import { Injectable } from '@nestjs/common';
 import { toCaptureDto } from './capture.mapper';
 import type { CreateCaptureDto } from './dto/create-capture.dto';
@@ -13,5 +13,13 @@ export class CapturesService {
       data: { source: dto.source, task: dto.task, rawText: dto.rawText },
     });
     return toCaptureDto(capture);
+  }
+
+  async findAll(status?: CaptureStatus): Promise<CaptureDto[]> {
+    const captures = await this.prisma.capture.findMany({
+      where: status ? { status } : undefined,
+      orderBy: { createdAt: 'desc' },
+    });
+    return captures.map(toCaptureDto);
   }
 }

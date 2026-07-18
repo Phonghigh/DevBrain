@@ -83,3 +83,38 @@ the shape.
 **required-field presence only** here — the anti-copy discipline (lint, split-pane
 Peek) is entirely a `ConceptsModule`/Distill concern (Phase 2), not a Captures one;
 Capture intake is deliberately friction-free (spec §6.1).
+
+---
+
+### DB1-04 — `GET /captures?status=raw` (inbox, newest first)
+
+**Objective.** Read side of DB1-03 — list captures, optionally filtered by `status`,
+newest first. This is what the Inbox screen (DB1-06) will call to show the raw queue.
+
+**Depends on.** `DB1-03`.
+
+**Touches.** `apps/api/src/captures/`.
+
+**Steps.**
+1. `apps/api/src/captures/dto/list-captures-query.dto.ts` — a class with an optional
+   `status?: CaptureStatus` field, validated with `@IsOptional() @IsIn([...])` against
+   the 3 spec-defined values (reject a typo'd status with 400, same discipline as
+   DB1-03's create validation, rather than silently matching zero rows).
+2. `CapturesService.findAll(status?)` — `prisma.capture.findMany({ where: status ? {
+   status } : undefined, orderBy: { createdAt: 'desc' } })`, mapped through
+   `toCaptureDto`.
+3. `CapturesController` — `@Get()` accepting `@Query() query: ListCapturesQueryDto`.
+4. `test/captures.e2e-spec.ts` (extend, don't duplicate the file) — `?status=raw`
+   returns only raw captures; no query param returns everything; newest-first
+   ordering is actually asserted (not just "doesn't crash"); an invalid status value
+   → 400.
+
+**Done when.**
+- `GET /captures?status=raw` returns only `raw` captures, newest first.
+- Invalid `status` values are rejected with 400.
+- e2e test green; typecheck/lint/test green across all 4 packages.
+
+**Notes.** Spec §7 lists the route as `GET /captures?status=raw` specifically for the
+inbox use case, but nothing in the spec says listing *all* captures should be
+impossible — making `status` optional (list-all when omitted) is a strict superset of
+what's asked for and costs nothing extra to implement or test.

@@ -27,7 +27,7 @@ Phases: **P0** Foundations · **P1** Capture + DB core · **P2** Distill + lint 
 - [x] **DB1-01** — Prisma schema `Capture`/`Concept`/`Link` (spec §5) + first migration · *deps:* DB0-07 · *done:* `migrate dev` creates the 3 tables; typed client generated.
 - [x] **DB1-02** — Shared Capture DTOs (`CreateCaptureDto`, `CaptureDto`, `CaptureStatus`) · *deps:* DB0-05, DB1-01 · *done:* types exported; consumed by api.
 - [x] **DB1-03** — `CapturesModule`: `POST /captures` (+ validation) · *deps:* DB1-01, DB1-02 · *done:* creates a capture `status=raw`; e2e test.
-- [ ] **DB1-04** — `GET /captures?status=raw` (inbox, newest first) · *deps:* DB1-03 · *done:* returns filtered list; e2e test.
+- [x] **DB1-04** — `GET /captures?status=raw` (inbox, newest first) · *deps:* DB1-03 · *done:* returns filtered list; e2e test.
 - [ ] **DB1-05** — Web API client (typed fetch wrapper via shared) · *deps:* DB0-08, DB1-02 · *done:* `createCapture`/`listCaptures`; unit-tested with a mock.
 - [ ] **DB1-06** — Web **Inbox/Capture** screen (textarea + source/task + submit; raw list) · *deps:* DB1-04, DB1-05 · *done:* paste → Save → capture appears in list; render test.
 

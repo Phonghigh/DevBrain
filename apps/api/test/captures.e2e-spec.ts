@@ -63,4 +63,70 @@ describe('Captures (e2e)', () => {
 
     expect(res.body.status).toBe('raw');
   });
+
+  describe('GET /captures', () => {
+    // Seeded directly via Prisma (not POST /captures) so ordering + a non-'raw' status
+    // can be controlled deterministically instead of racing on wall-clock timestamps.
+    let oldestRawId: string;
+    let distilledId: string;
+    let newestRawId: string;
+
+    beforeAll(async () => {
+      const now = Date.now();
+      const oldestRaw = await prisma.capture.create({
+        data: {
+          source: 'e2e-test-list',
+          rawText: 'oldest raw',
+          status: 'raw',
+          createdAt: new Date(now - 2000),
+        },
+      });
+      const distilled = await prisma.capture.create({
+        data: {
+          source: 'e2e-test-list',
+          rawText: 'a distilled one',
+          status: 'distilled',
+          createdAt: new Date(now - 1000),
+        },
+      });
+      const newestRaw = await prisma.capture.create({
+        data: {
+          source: 'e2e-test-list',
+          rawText: 'newest raw',
+          status: 'raw',
+          createdAt: new Date(now),
+        },
+      });
+      oldestRawId = oldestRaw.id;
+      distilledId = distilled.id;
+      newestRawId = newestRaw.id;
+    });
+
+    afterAll(async () => {
+      await prisma.capture.deleteMany({ where: { source: 'e2e-test-list' } });
+    });
+
+    it('?status=raw returns only raw captures, newest first', async () => {
+      const res = await request(app.getHttpServer()).get('/captures?status=raw').expect(200);
+      const ids = (res.body as { id: string }[])
+        .map((c) => c.id)
+        .filter((id) => id === oldestRawId || id === newestRawId);
+
+      expect(ids).toEqual([newestRawId, oldestRawId]);
+      expect((res.body as { id: string }[]).some((c) => c.id === distilledId)).toBe(false);
+    });
+
+    it('no status query returns every capture, still newest first among ours', async () => {
+      const res = await request(app.getHttpServer()).get('/captures').expect(200);
+      const ids = (res.body as { id: string }[])
+        .map((c) => c.id)
+        .filter((id) => id === oldestRawId || id === distilledId || id === newestRawId);
+
+      expect(ids).toEqual([newestRawId, distilledId, oldestRawId]);
+    });
+
+    it('an invalid status value is rejected with 400', async () => {
+      await request(app.getHttpServer()).get('/captures?status=bogus').expect(400);
+    });
+  });
 });
