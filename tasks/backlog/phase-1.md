@@ -159,3 +159,44 @@ shapes.
 where this client gets exercised against a real, running api in a manual/dev-server
 check; the unit test here only proves the client builds the right request and parses
 the right response.
+
+---
+
+### DB1-06 — Web Inbox/Capture screen
+
+**Objective.** The last Phase 1 task: a real screen a human can use — paste a raw dump,
+save it, see it land in the raw queue (spec §6.1, §8.1). This is the point Phase 1 stops
+being api-only and becomes an actual usable capture flow end to end.
+
+**Depends on.** `DB1-04`, `DB1-05`.
+
+**Touches.** `apps/web/src/app/routes/InboxRoute.tsx`,
+`apps/web/src/app/routes/InboxRoute.test.tsx` (replaces DB0-10's placeholder version).
+
+**Steps.**
+1. `InboxRoute` becomes stateful: a `<select>` for `source` (the 3 documented values
+   from spec §5's schema comment — `chatgpt`/`claude`/`manual`), an optional `task`
+   text input, and a `rawText` textarea, plus a Save button.
+2. On mount, call `listCaptures('raw')` (DB1-05's client) and render the result —
+   loading state while the request is in flight, an empty-state message if there are
+   none yet.
+3. On Save, call `createCapture` (DB1-05), then re-fetch the list (or prepend the
+   returned capture locally) so it shows up without a manual refresh, and clear the
+   form for the next paste.
+4. Surface a save error (e.g. validation failure) without losing what the user typed —
+   friction-free capture (spec §6.1) means a failed save shouldn't force retyping.
+5. `InboxRoute.test.tsx` — mock `@devbrain/shared`'s sibling api client module (not the
+   network), and assert: initial list renders from `listCaptures`; filling the form and
+   clicking Save calls `createCapture` with the right payload and the new capture
+   appears in the rendered list.
+
+**Done when.**
+- Paste text → Save → the capture appears in the on-screen list (proven by the render
+  test, spec's own wording for this task).
+- typecheck/lint/test green across all 4 packages.
+- Manually verified against the real dev server + real api (this is the first task
+  with an actual usable screen — worth seeing it work, not just trusting the test).
+
+**Notes.** This closes Phase 1 (P1: 6/6). Keep the screen honestly minimal — no
+styling system, no client-side validation duplicating the api's — matching spec §8's
+"no fancy design system needed in v1."

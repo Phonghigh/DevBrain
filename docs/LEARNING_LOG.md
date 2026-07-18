@@ -1,6 +1,6 @@
 # Learning Log
 
-Current phase: Phase 1 — Capture + DB core
+Current phase: Phase 2 — Distill + lint (the heart)
 
 See also: global dev brain at `~/.claude/knowledge/dev-brain.md` — patterns,
 tech/approach preferences, and general concepts that carry over to future projects
@@ -24,6 +24,8 @@ updates it (via the `learning-log` skill) each time a task introduces new concep
 | Deterministic ordering tests (seed explicit timestamps, don't race the clock) | understood | 2026-07-18 | Introduced by DB1-04 — proving `orderBy: {createdAt:'desc'}` actually works means seeding rows with explicit, spaced-out `createdAt` values (not `POST`-ing them back to back and hoping real timestamps land in different milliseconds). See [learn-log](learn-log/DB1-04-list-captures-endpoint.md) §4. |
 | `import.meta.env` (Vite build-time config) | understood | 2026-07-18 | Introduced by DB1-05 — the web app's first custom env var (`VITE_API_BASE_URL`). Checked the actual `vite/types/importMeta.d.ts` rather than guessing: `ImportMetaEnv extends Record<string, any>` by default, so custom `VITE_*` keys typecheck with no extra `.d.ts` needed (unless a project opts into `strictImportMetaEnv`). Only works inside Vite's transform (Vite or Vitest) — a plain `node` run of a file using it fails immediately. See [learn-log](learn-log/DB1-05-web-api-client.md) §4, §6. |
 | Mocking `fetch` for unit tests (`vi.stubGlobal`) | understood | 2026-07-18 | Introduced by DB1-05's `client.test.ts` — replaces the browser's `fetch` with a fake (`vi.fn()`) so request-building logic (URL, method, headers, body) can be asserted without a real network call or a running server. See [learn-log](learn-log/DB1-05-web-api-client.md) §4. |
+| CORS (Cross-Origin Resource Sharing) | understood | 2026-07-18 | **The real bug of DB1-06.** `apps/web` (port 5173) and `apps/api` (port 3000) are different origins even both on `localhost` — without `app.enableCors()`, the browser silently blocked every request, and `InboxRoute.test.tsx`'s mocked `fetch` could never catch this (no real HTTP request = no real CORS check). Found only by booting both real servers and checking in headless Edge, then confirmed with a real `curl -X OPTIONS ... -H Origin:`. Fixed, re-verified read *and* write work through a real browser. See [learn-log](learn-log/DB1-06-web-inbox-screen.md) §4, §6, §7. |
+| Mutation-testing a stateful UI assertion | understood | 2026-07-18 | DB1-06 extended DB0-10's "break it on purpose" habit to a stateful interaction: removed the line that appends a newly-saved capture to the list, confirmed the "paste → Save → appears" test correctly failed, restored it. See [learn-log](learn-log/DB1-06-web-inbox-screen.md) §4. |
 | Vitest (test runner basics) | not-started | 2026-07-16 | Introduced by DB0-05; extended in DB0-09 to the api's e2e suite (chosen over Nest's default Jest for one runner repo-wide). See [learn-log](learn-log/DB0-09-vitest-supertest-api.md) §4–5. |
 | Render testing (jsdom + Testing Library, query by role) | not-started | 2026-07-16 | Introduced by DB0-10 — jsdom is a fake browser in Node; `getByRole('heading', {name})` asserts *meaning* (real heading for a screen reader), not just that text exists. Replaces DB0-08's manual headless-browser ceremony. See [learn-log](learn-log/DB0-10-vitest-testing-library-web.md) §4. |
 | Mutation testing (break it on purpose) | not-started | 2026-07-16 | Introduced by DB0-10 as a habit, earned by DB0-09's near-miss: a test that has never failed isn't evidence yet. Downgraded `<h1>` → `<p>` and confirmed the test caught it. See [learn-log](learn-log/DB0-10-vitest-testing-library-web.md) §7. |
@@ -57,6 +59,8 @@ mindmap
       Deterministic ordering tests
       Vite import meta env
       Mocking fetch with vi stubGlobal
+      CORS
+      Mutation testing stateful UI
     Shaky
       TS incremental compilation
     Not started
@@ -131,3 +135,7 @@ mindmap
 - Unit-tested with a mocked `fetch` (`vi.stubGlobal`) as the task asked, then went one step further: booted the real compiled api server and ran a throwaway Vitest probe that called the real (unmocked) client functions against it — confirmed the URL fallback really works end-to-end, not just inside a mock's imagination. Deleted the probe and cleaned up the row it created afterward.
 - One small dead end, recovered fast: tried running the client via plain `node` first, forgot `import.meta.env` only exists inside Vite's transform — switched to Vitest (which already wraps Vite) for the live probe instead.
 - Stuck on / revisit next time: nothing blocking. Next eligible: DB1-06 (Web Inbox/Capture screen) — wires this client into a real React component, the last task of Phase 1.
+- Covered: DB1-06 — the Inbox screen, **Phase 1 complete (6/6)**. A real form (source picker, task input, textarea) + list, wired to DB1-05's client. Mutation-tested the "paste → Save → appears" assertion (removed the state-update line, watched the test fail, restored it) before trusting the render test suite.
+- **The real find of the task:** booted the actual api server and the actual Vite dev server together (not just the automated test suite) and hit a genuine bug — `"Could not load captures."` on the real page, even though every mocked test was green. Root cause: no CORS configured on the api, so the browser silently blocked every cross-origin request from `localhost:5173` to `localhost:3000`. `curl` boot tests (every prior task's pattern) never would have caught this — CORS is a browser-only enforcement, invisible to `curl` unless you explicitly send an `Origin` header and inspect the response. Fixed with `app.enableCors()`, then re-verified **both** the read and the write path through a real browser (headless Edge `--dump-dom`) against the real api — including a real `POST` actually showing up in the rendered list.
+- The lesson that generalizes: a green render test with a mocked api client proves the component's own logic, not that the whole system works — anything crossing a real network boundary needs at least one real end-to-end check, and this project's habit of booting real servers (not just trusting `pnpm test`) is exactly what caught this before a human ever opened the app.
+- Stuck on / revisit next time: nothing blocking. **Phase 1 (Capture + DB core) is done.** Next eligible: DB2-01 (Lint core in `packages/shared`) — the start of Phase 2, the anti-copy discipline that's the actual point of this project.
