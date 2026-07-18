@@ -53,6 +53,7 @@ Newest at the top. One row per task report.
 
 | Task | Report | Difficulty | Status |
 |---|---|---|---|
+| DB2-01 | [Lint core in packages/shared](DB2-01-lint-core.md) | ⭐⭐⭐ | not-studied |
 | DB1-06 | [Web Inbox/Capture screen](DB1-06-web-inbox-screen.md) | ⭐⭐⭐ | not-studied |
 | DB1-05 | [Web API client (typed fetch wrapper via shared)](DB1-05-web-api-client.md) | ⭐ | not-studied |
 | DB1-04 | [GET /captures?status=raw (inbox, newest first)](DB1-04-list-captures-endpoint.md) | ⭐ | not-studied |

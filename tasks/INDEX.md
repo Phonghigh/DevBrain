@@ -32,7 +32,7 @@ Phases: **P0** Foundations · **P1** Capture + DB core · **P2** Distill + lint 
 - [x] **DB1-06** — Web **Inbox/Capture** screen (textarea + source/task + submit; raw list) · *deps:* DB1-04, DB1-05 · *done:* paste → Save → capture appears in list; render test.
 
 ## Phase 2 — Distill + lint (the heart — spec §6)
-- [ ] **DB2-01** — Lint core in `packages/shared`: `lintNote(body, rawText)` → warnings (5-gram overlap >35%, missing `[[link]]`, >200 words) + text normalization · *deps:* DB0-05 · *done:* **unit tests** per rule + boundaries; pure function, no deps.
+- [x] **DB2-01** — Lint core in `packages/shared`: `lintNote(body, rawText)` → warnings (5-gram overlap >35%, missing `[[link]]`, >200 words) + text normalization · *deps:* DB0-05 · *done:* **unit tests** per rule + boundaries; pure function, no deps.
 - [ ] **DB2-02** — Shared Concept DTOs (`CreateConceptDto`, `ConceptDto`, `LintWarning`, `BacklinkDto`) · *deps:* DB0-05, DB1-01 · *done:* types exported.
 - [ ] **DB2-03** — Wikilink parser in `packages/shared`: `parseWikilinks(body)` + `slugify(title)` · *deps:* DB0-05 · *done:* unit-tested (dedupe, diacritics/unicode, edge cases).
 - [ ] **DB2-04** — `ConceptsModule` `POST /concepts`: lint → create Concept → parse `[[..]]` → upsert `Link` rows + auto-create `stub` Concepts · *deps:* DB1-01, DB2-01, DB2-02, DB2-03 · *done:* returns `{concept, warnings}`; stubs + links created; e2e test.
